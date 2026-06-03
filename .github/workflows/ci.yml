@@ -12,6 +12,11 @@ jobs:
 
       - name: Install dependencies
         run: pip install pytest
+      - run: pip install pylint
 
       - name: Run tests
         run:  pytest 
+        
+
+      - name: report making
+        run: pylint calculator.py || true
