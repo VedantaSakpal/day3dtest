@@ -1,22 +1,46 @@
-name: CI
+name: Nginx Docker CI
 
-on: 
- push:
+on:
+  push:
+    branches:
+      - main
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: pip install pytest
-      - run: pip install pylint
+      - name: Build Image
+        run: docker build -t my-nginx-demo .
 
-      - name: Run tests
-        run:  pytest 
-        
+      - name: Start Container
+        run: docker run -d -p 8080:80 --name website my-nginx-demo
 
-      - name: report making
-        run: pylint calculator.py || true
+
+  logs:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Image Again
+        run: docker build -t my-nginx-demo .
+
+      - name: Show Containers
+        run: docker ps -a
+
+      - name: Show Logs
+        run: docker logs website
+
+  deploy:
+    needs: logs
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Curl Test
+        run: curl http://localhost:8080
